@@ -36,8 +36,11 @@ config_dict = {
     'train_crop_relative' : False,
 
     # dataset
-    'dataset_folder_train' : '/cvlabdata1/home/rhodin/code/humanposeannotation/python/pytorch_human_reconstruction/TMP/H36M-MultiView-train',
-    'dataset_folder_test' : '/cvlabdata1/home/rhodin/code/humanposeannotation/python/pytorch_human_reconstruction/TMP/H36M-MultiView-test',
+    # /bigdata/dingding/cpsc-533/project/UnsupervisedGeometryAwareRepresentationLearning/data/H36M-MultiView-train/
+    'dataset_folder_train' :'/bigdata/dingding/cpsc-533/project/UnsupervisedGeometryAwareRepresentationLearning/data/H36M-MultiView-train',
+    'dataset_folder_test': '/bigdata/dingding/cpsc-533/project/UnsupervisedGeometryAwareRepresentationLearning/data/H36M-MultiView-test',
+    # 'dataset_folder_train' : '/cvlabdata1/home/rhodin/code/humanposeannotation/python/pytorch_human_reconstruction/TMP/H36M-MultiView-train',
+    # 'dataset_folder_test' : '/cvlabdata1/home/rhodin/code/humanposeannotation/python/pytorch_human_reconstruction/TMP/H36M-MultiView-test',
     #'dataset_folder' :'/Users/rhodin/H36M-MultiView-test',
     'training_set' : 'h36m',
     'img_mean' : (0.485, 0.456, 0.406),
