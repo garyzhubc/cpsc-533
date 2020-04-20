@@ -127,10 +127,11 @@ class CapsuleLayer(nn.Module):
         return scale * tensor / torch.sqrt(squared_norm)
 
     def forward(self, x):
+        device = x.device
         if self.num_route_nodes != -1:
             priors = x[None, :, :, None, :] @ self.route_weights[:, None, :, :, :]
 
-            logits = Variable(torch.zeros(*priors.size()))
+            logits = Variable(torch.zeros(*priors.size())).to(device)
             for i in range(self.num_iterations):
                 probs = softmax(logits, dim=2)
                 outputs = self.squash((probs * priors).sum(dim=2, keepdim=True))
@@ -216,6 +217,7 @@ class ResNetTwoStream(nn.Module):
 
     def forward(self, x_dict):
         x = x_dict[self.input_key]
+        device = x.device
         x = self.conv1(x) # size /2
         x = self.bn1(x)
         x = self.relu(x) 
@@ -235,7 +237,7 @@ class ResNetTwoStream(nn.Module):
         classes = F.softmax(classes, dim=-1)
 
         _, max_length_indices = classes.max(dim=1)
-        y = Variable(torch.eye(10)).index_select(dim=0, index=max_length_indices.data)
+        y = Variable(torch.eye(10)).to(device).index_select(dim=0, index=max_length_indices.data)
         z = x * y[:, :, None]
 
         # regression stream
