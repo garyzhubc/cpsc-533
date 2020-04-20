@@ -190,9 +190,12 @@ class unet(nn.Module):
                 self.to_fg =  nn.Sequential( Linear(num_output_features, self.dimension_fg),
                                          Dropout(inplace=True, p=self.latent_dropout),
                                          ReLU(inplace=False))
-            self.from_latent =  nn.Sequential( Linear(self.dimension_3d, num_output_features_3d),
+            self.from_latent =  nn.Sequential( Linear(self.dimension_3d + self.dimension_fg, num_output_features_3d),
                              Dropout(inplace=True, p=self.latent_dropout),
                              ReLU(inplace=False))
+            # self.from_latent =  nn.Sequential( Linear(self.dimension_3d, num_output_features_3d),
+            #                  Dropout(inplace=True, p=self.latent_dropout),
+            #                  ReLU(inplace=False))
 
         ####################################
         ############ decoder ###############
@@ -302,9 +305,9 @@ class unet(nn.Module):
         if self.encoderType == "ResNet":
             #IPython.embed()
             output = self.encoder.forward(input_dict_cropped)['latent_3d']
-            if has_fg:
-                latent_fg = output[:,:self.dimension_fg]
-            latent_3d = output[:,self.dimension_fg:self.dimension_fg+self.dimension_3d].contiguous().view(batch_size,-1,3)
+            # if has_fg:
+            #     latent_fg = output[:,:self.dimension_fg]
+            # latent_3d = output[:,self.dimension_fg:self.dimension_fg+self.dimension_3d].contiguous().view(batch_size,-1,3)
         else: # UNet encoder
             out_enc_conv = input_dict_cropped['img_crop']
             for li in range(1,self.num_encoding_layers): # note, first layer(li==1) is already created, last layer(li==num_encoding_layers) is created externally
@@ -324,39 +327,40 @@ class unet(nn.Module):
 
         ###############################################
         # latent rotation (to shuffled view)
-        if self.implicit_rotation:
-            encoded_angle = self.encode_angle(cam2cam.view(batch_size,-1))
-            encoded_latent_and_angle = torch.cat([latent_3d.view(batch_size,-1), encoded_angle], dim=1)
-            latent_3d_rotated = self.rotate_implicitely(encoded_latent_and_angle)
-        else:
-            latent_3d_rotated = torch.bmm(latent_3d, cam2cam.transpose(1,2))
+        # if self.implicit_rotation:
+        #     encoded_angle = self.encode_angle(cam2cam.view(batch_size,-1))
+        #     encoded_latent_and_angle = torch.cat([latent_3d.view(batch_size,-1), encoded_angle], dim=1)
+        #     latent_3d_rotated = self.rotate_implicitely(encoded_latent_and_angle)
+        # else:
+        #     latent_3d_rotated = torch.bmm(latent_3d, cam2cam.transpose(1,2))
 
-        if 'shuffled_pose_weight' in input_dict.keys():
-            w = input_dict['shuffled_pose_weight']
-            # weighted average with the last one
-            latent_3d_rotated = (1-w.expand_as(latent_3d))*latent_3d + w.expand_as(latent_3d)*latent_3d_rotated[-1:].expand_as(latent_3d)
+        # if 'shuffled_pose_weight' in input_dict.keys():
+        #     w = input_dict['shuffled_pose_weight']
+        #     # weighted average with the last one
+        #     latent_3d_rotated = (1-w.expand_as(latent_3d))*latent_3d + w.expand_as(latent_3d)*latent_3d_rotated[-1:].expand_as(latent_3d)
 
-        if has_fg:
-            latent_fg_shuffled = torch.index_select(latent_fg, dim=0, index=shuffled_appearance)        
-            if 'shuffled_appearance_weight' in input_dict.keys():
-                w = input_dict['shuffled_appearance_weight']
-                latent_fg_shuffled = (1-w.expand_as(latent_fg))*latent_fg + w.expand_as(latent_fg)*latent_fg_shuffled
+        # if has_fg:
+        #     latent_fg_shuffled = torch.index_select(latent_fg, dim=0, index=shuffled_appearance)        
+        #     if 'shuffled_appearance_weight' in input_dict.keys():
+        #         w = input_dict['shuffled_appearance_weight']
+        #         latent_fg_shuffled = (1-w.expand_as(latent_fg))*latent_fg + w.expand_as(latent_fg)*latent_fg_shuffled
 
         ###############################################
         # decoding
-        map_from_3d = self.from_latent(latent_3d_rotated.view(batch_size,-1))
-        map_width = self.bottleneck_resolution #out_enc_conv.size()[2]
-        map_channels = self.filters[self.num_encoding_layers-1] #out_enc_conv.size()[1]
-        if has_fg:
-            latent_fg_shuffled_replicated = latent_fg_shuffled.view(batch_size,self.dimension_fg,1,1).expand(batch_size, self.dimension_fg, map_width, map_width)
-            latent_shuffled = torch.cat([latent_fg_shuffled_replicated, map_from_3d.view(batch_size, map_channels-self.dimension_fg, map_width, map_width)], dim=1)
-        else:
-            latent_shuffled = map_from_3d.view(batch_size, map_channels, map_width, map_width)
+        # map_from_3d = self.from_latent(latent_3d_rotated.view(batch_size,-1))
+        # map_width = self.bottleneck_resolution #out_enc_conv.size()[2]
+        # map_channels = self.filters[self.num_encoding_layers-1] #out_enc_conv.size()[1]
+        # if has_fg:
+        #     latent_fg_shuffled_replicated = latent_fg_shuffled.view(batch_size,self.dimension_fg,1,1).expand(batch_size, self.dimension_fg, map_width, map_width)
+        #     latent_shuffled = torch.cat([latent_fg_shuffled_replicated, map_from_3d.view(batch_size, map_channels-self.dimension_fg, map_width, map_width)], dim=1)
+        # else:
+        #     latent_shuffled = map_from_3d.view(batch_size, map_channels, map_width, map_width)
 
         if self.skip_connections:
             assert False
         else:
-            out_deconv = latent_shuffled
+            # out_deconv = latent_shuffled
+            out_deconv = output.view(batch_size,self.dimension_fg+self.dimension_3d,1,1).expand(batch_size, self.dimension_fg+self.dimension_3d, map_width, map_width)
             for li in range(1,self.num_encoding_layers-1):
                 out_deconv = getattr(self, 'upconv_'+str(li)+'_stage' + str(ns))(out_deconv)
 
