@@ -12,9 +12,9 @@ import torch.nn.functional as F
 from torch import nn
 import numpy as np
 
-BATCH_SIZE = 100
+BATCH_SIZE = 32
 NUM_CLASSES = 10
-NUM_EPOCHS = 500
+NUM_EPOCHS = 10
 NUM_ROUTING_ITERATIONS = 3
 
 
@@ -112,7 +112,7 @@ class CapsuleNet(nn.Module):
             _, max_length_indices = classes.max(dim=1)
             y = Variable(torch.eye(NUM_CLASSES)).cuda().index_select(dim=0, index=max_length_indices.data)
 
-        reconstructions = self.decoder((x * y[:, :, None]).view(x.size(0), -1))
+        reconstructions = self.decoder((x * y[:, :, None]).reshape(x.size(0), -1))
 
         return classes, reconstructions
 
