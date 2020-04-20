@@ -182,7 +182,8 @@ class ResNetTwoStream(nn.Module):
         heat_vec_dimension = 128*heat_vec_width*heat_vec_width
 
         # self.fc = nn.Linear(l4_vec_dimension, num_classes)
-        self.fc = nn.Linear(160, num_classes)
+        # self.fc = nn.Linear(160, num_classes)
+        self.fc = nn.Linear(160, 256)
         
         for m in self.modules():
             if isinstance(m, nn.Conv2d):

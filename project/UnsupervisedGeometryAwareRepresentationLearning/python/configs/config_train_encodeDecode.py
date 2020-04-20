@@ -9,7 +9,7 @@ config_dict = {
     'dpi' : 190,
     'config_class_file': 'dict_configs/config_class_encodeDecode.py',
     'input_types'       : ['img_crop','extrinsic_rot','extrinsic_rot_inv','bg_crop'],
-    'output_types'      : ['3D','img_crop'],
+    'output_types'      : ['img_crop'], # ['3D','img_crop'],
     'label_types_train' : ['img_crop','3D','bounding_box_cam','intrinsic_crop','extrinsic_rot','extrinsic_rot_inv'],
     'label_types_test'  : ['img_crop','3D','bounding_box_cam','intrinsic_crop','extrinsic_rot','extrinsic_rot_inv'],
     'num_workers'       : 8,

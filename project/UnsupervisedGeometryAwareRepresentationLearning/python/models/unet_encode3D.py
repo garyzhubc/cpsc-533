@@ -110,6 +110,7 @@ class unet(nn.Module):
 
         #filters = [64, 128, 256, 512, 1024]
         self.filters = [64, 128, 256, 512, 512, 512] # HACK
+        # self.filters = [64, 128, 728, 512, 512, 512] # HACK
         self.filters = [int(x / self.feature_scale) for x in self.filters]
         self.bottleneck_resolution = in_resolution//(2**(num_encoding_layers-1))
         num_output_features = self.bottleneck_resolution**2 * self.filters[num_encoding_layers-1]
@@ -348,8 +349,8 @@ class unet(nn.Module):
         ###############################################
         # decoding
         # map_from_3d = self.from_latent(latent_3d_rotated.view(batch_size,-1))
-        # map_width = self.bottleneck_resolution #out_enc_conv.size()[2]
-        # map_channels = self.filters[self.num_encoding_layers-1] #out_enc_conv.size()[1]
+        map_width = self.bottleneck_resolution #out_enc_conv.size()[2]
+        map_channels = self.filters[self.num_encoding_layers-1] #out_enc_conv.size()[1]
         # if has_fg:
         #     latent_fg_shuffled_replicated = latent_fg_shuffled.view(batch_size,self.dimension_fg,1,1).expand(batch_size, self.dimension_fg, map_width, map_width)
         #     latent_shuffled = torch.cat([latent_fg_shuffled_replicated, map_from_3d.view(batch_size, map_channels-self.dimension_fg, map_width, map_width)], dim=1)
@@ -360,7 +361,8 @@ class unet(nn.Module):
             assert False
         else:
             # out_deconv = latent_shuffled
-            out_deconv = output.view(batch_size,self.dimension_fg+self.dimension_3d,1,1).expand(batch_size, self.dimension_fg+self.dimension_3d, map_width, map_width)
+            # out_deconv = output.view(batch_size,self.dimension_fg+self.dimension_3d,1,1).expand(batch_size, self.dimension_fg+self.dimension_3d, map_width, map_width)
+            out_deconv = output.view(batch_size,map_channels,1,1).expand(batch_size,map_channels, map_width, map_width)
             for li in range(1,self.num_encoding_layers-1):
                 out_deconv = getattr(self, 'upconv_'+str(li)+'_stage' + str(ns))(out_deconv)
 
@@ -377,12 +379,13 @@ class unet(nn.Module):
 
         ###############################################
         # 3D pose stage (parallel to image decoder)
-        output_pose = self.to_pose.forward({'latent_3d': latent_3d})['3D']
+        # output_pose = self.to_pose.forward({'latent_3d': latent_3d})['3D']
 
         ###############################################
         # Select the right output
-        output_dict_all = {'3D' : output_pose, 'img_crop' : output_img, 'shuffled_pose' : shuffled_pose,
-                           'shuffled_appearance' : shuffled_appearance, 'latent_3d': latent_3d,
+        output_dict_all = { # '3D' : output_pose, 
+                            'img_crop' : output_img, 'shuffled_pose' : shuffled_pose,
+                           'shuffled_appearance' : shuffled_appearance, # 'latent_3d': latent_3d,
                            'cam2cam': cam2cam } #, 'shuffled_appearance' : xxxx, 'shuffled_pose' : xxx}
         output_dict = {}
         for key in self.output_types:
