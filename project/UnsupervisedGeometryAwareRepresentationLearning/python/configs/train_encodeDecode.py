@@ -22,7 +22,7 @@ from losses import images as losses_images
 
 import math
 import torch
-torch.cuda.current_device() # to prevent  "Cannot re-initialize CUDA in forked subprocess." error on some configurations
+# torch.cuda.current_device() # to prevent  "Cannot re-initialize CUDA in forked subprocess." error on some configurations
 import torch.optim
 import torchvision
 import torchvision.transforms as transforms
@@ -172,7 +172,7 @@ class IgniteTrainNVS:
                 utils_train.transfer_partial_weights(pretrained_states, network_single, submodule=0, add_prefix='encoder.') # last argument is to remove "network.single" prefix in saved network
             else:
                 print("Loading weights from config_dict['pretrained_network_path']")
-                pretrained_network_path = config_dict['pretrained_network_path']            
+                pretrained_network_path = config_dict['pretrained_network_path']
                 pretrained_states = torch.load(pretrained_network_path, map_location=device)
                 utils_train.transfer_partial_weights(pretrained_states, network_single, submodule=0) # last argument is to remove "network.single" prefix in saved network
                 print("Done loading weights from config_dict['pretrained_network_path']")
@@ -282,7 +282,7 @@ class IgniteTrainNVS:
         
     
 if __name__ == "__main__":
-    config_dict_module = utils_io.loadModule("configs/config_train_encodeDecode.py")
+    config_dict_module = utils_io.loadModule("config_train_encodeDecode.py")
     config_dict = config_dict_module.config_dict
     ignite = IgniteTrainNVS()
     ignite.run(config_dict_module.__file__, config_dict)
