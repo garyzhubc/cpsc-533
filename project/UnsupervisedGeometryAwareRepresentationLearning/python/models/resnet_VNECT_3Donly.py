@@ -4,15 +4,14 @@ import torch.utils.model_zoo as model_zoo
 import torch
 import torch.nn.functional as F
 
-#import sys
-#sys.path.insert(0,'../')
+# import sys
+# sys.path.insert(0,'../')
 
 from utils import training as utils_train
 from torch.autograd import Variable
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
            'resnet152']
-
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -99,10 +98,12 @@ class Bottleneck(nn.Module):
 
         return out
 
+
 def softmax(input, dim=1):
     transposed_input = input.transpose(dim, len(input.size()) - 1)
     softmaxed_output = F.softmax(transposed_input.contiguous().view(-1, transposed_input.size(-1)), dim=-1)
     return softmaxed_output.view(*transposed_input.size()).transpose(dim, len(input.size()) - 1)
+
 
 class CapsuleLayer(nn.Module):
     def __init__(self, num_capsules, num_route_nodes, in_channels, out_channels, kernel_size=None, stride=None,
@@ -150,10 +151,12 @@ class CapsuleLayer(nn.Module):
 class ResNetTwoStream(nn.Module):
 
     def __init__(self, block, layers, input_key='img_crop', output_keys=['3D'],
-                 num_scalars=1000, input_width=256, num_classes=17*3):
+                 num_scalars=1000, input_width=256, num_classes=17 * 3, num_digit_caps=10,
+                                                        num_caps_out_channel=160,
+                                                        masked=False):
         self.output_keys = output_keys
         self.input_key = input_key
-        
+
         self.inplanes = 64
         super(ResNetTwoStream, self).__init__()
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
@@ -161,33 +164,34 @@ class ResNetTwoStream(nn.Module):
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block,  64, layers[0])
+        self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4_reg = self._make_layer(block, 256, layers[3], stride=1)
 
         self.l4_reg_toVec = nn.Sequential(
-                        nn.Conv2d(256* block.expansion, 512, kernel_size=3, stride=1, padding=0, bias=True),
-                        nn.BatchNorm2d(512),
-                        nn.ReLU(inplace=True),
-                        nn.Conv2d(512, 128, kernel_size=5, stride=2, padding=0, bias=False),
-                        nn.BatchNorm2d(128),
-                        nn.Sigmoid(),
-            )
-         
+            nn.Conv2d(256 * block.expansion, 512, kernel_size=3, stride=1, padding=0, bias=True),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(512, 128, kernel_size=5, stride=2, padding=0, bias=False),
+            nn.BatchNorm2d(128),
+            nn.Sigmoid(),
+        )
+
         # size computation of fc input: /16 in resnet, /2 in toMap, -3 in map since no padding but 3x3 (-1) and 5x5 (-2) kernels
-        l4_vec_width     = int(input_width/32)-3 
-        l4_vec_dimension = 128*l4_vec_width*l4_vec_width
-        heat_vec_width     = int(input_width/32)-3
-        heat_vec_dimension = 128*heat_vec_width*heat_vec_width
+        l4_vec_width = int(input_width / 32) - 3
+        l4_vec_dimension = 128 * l4_vec_width * l4_vec_width
+        heat_vec_width = int(input_width / 32) - 3
+        heat_vec_dimension = 128 * heat_vec_width * heat_vec_width
 
         # self.fc = nn.Linear(l4_vec_dimension, num_classes)
         # self.fc = nn.Linear(160, num_classes)
 
-        num_digit_caps = 10 # 20
-        num_caps_out_channel = 160
-        self.fc = nn.Linear(num_digit_caps * num_caps_out_channel, 256)
-        
+        self.num_digit_caps = num_digit_caps  # 20
+        self.num_caps_out_channel = num_caps_out_channel
+        self.masked = masked
+        self.fc = nn.Linear(self.num_digit_caps * self.num_caps_out_channel, 256)
+
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
@@ -199,8 +203,8 @@ class ResNetTwoStream(nn.Module):
         self.conv1a = nn.Conv2d(in_channels=256, out_channels=256, kernel_size=13, stride=1)
         self.primary_capsules = CapsuleLayer(num_capsules=8, num_route_nodes=-1, in_channels=256, out_channels=32,
                                              kernel_size=9, stride=2)
-        self.digit_capsules = CapsuleLayer(num_capsules=num_digit_caps, num_route_nodes=32 * 6 * 6, in_channels=8,
-                                           out_channels=num_caps_out_channel)
+        self.digit_capsules = CapsuleLayer(num_capsules=self.num_digit_caps, num_route_nodes=32 * 6 * 6, in_channels=8,
+                                           out_channels=self.num_caps_out_channel)
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
@@ -223,10 +227,10 @@ class ResNetTwoStream(nn.Module):
         x = x_dict[self.input_key]
         device = x.device
         batchsize, _, _, _, = x.shape
-        x = self.conv1(x) # size /2
+        x = self.conv1(x)  # size /2
         x = self.bn1(x)
-        x = self.relu(x) 
-        x = self.maxpool(x) # size /2
+        x = self.relu(x)
+        x = self.maxpool(x)  # size /2
 
         x = self.layer1(x)
 
@@ -238,8 +242,7 @@ class ResNetTwoStream(nn.Module):
         # x = self.layer3(x)# size /2
 
         x = x.squeeze().transpose(0, 1)
-        masked = False
-        if masked:
+        if self.masked:
             classes = (x ** 2).sum(dim=-1) ** 0.5
             classes = F.softmax(classes, dim=-1)
 
@@ -247,19 +250,19 @@ class ResNetTwoStream(nn.Module):
             y = Variable(torch.eye(10)).to(device).index_select(dim=0, index=max_length_indices.data)
             z = x * y[:, :, None]
         else:
-            z=x
+            z = x
 
         # regression stream
         # x_r = self.layer4_reg(x)
-        
+
         # f_r = self.l4_reg_toVec(x_r)
         # f_lin = f_r.view(f_r.size(0), -1) # 1D per batch
-               
+
         # p = self.fc(f_lin)
         p = self.fc(z.reshape(batchsize, -1))
 
-        #print('f_lin.size()',f_lin.size())
-        return {self.output_keys[0]: p} #{'3D': p, '2d_heat': h}
+        # print('f_lin.size()',f_lin.size())
+        return {self.output_keys[0]: p}  # {'3D': p, '2d_heat': h}
 
 
 def resnet50(pretrained=False, **kwargs):
@@ -268,13 +271,13 @@ def resnet50(pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-#    model = ResNet(Bottleneck, [3, 4, 6, 1], **kwargs)
+    #    model = ResNet(Bottleneck, [3, 4, 6, 1], **kwargs)
     model = ResNetTwoStream(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
         print("Loading image net weights...")
         utils_train.transfer_partial_weights(model_zoo.load_url(model_urls['resnet50']), model)
         print("Done image net weights...")
-        #model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
+        # model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
     return model
 
 
@@ -289,7 +292,7 @@ def resnet101(pretrained=False, **kwargs):
         print("Loading image net weights...")
         utils_train.transfer_partial_weights(model_zoo.load_url(model_urls['resnet101']), model)
         print("Done image net weights...")
-        #model.load_state_dict(model_zoo.load_url(model_urls['resnet101']))
+        # model.load_state_dict(model_zoo.load_url(model_urls['resnet101']))
     return model
 
 
@@ -304,5 +307,5 @@ def resnet152(pretrained=False, **kwargs):
         print("Loading image net weights...")
         utils_train.transfer_partial_weights(model_zoo.load_url(model_urls['resnet152']), model)
         print("Done image net weights...")
-        #model.load_state_dict(model_zoo.load_url(model_urls['resnet152']))
+        # model.load_state_dict(model_zoo.load_url(model_urls['resnet152']))
     return model
