@@ -183,7 +183,10 @@ class ResNetTwoStream(nn.Module):
 
         # self.fc = nn.Linear(l4_vec_dimension, num_classes)
         # self.fc = nn.Linear(160, num_classes)
-        self.fc = nn.Linear(160, 256)
+
+        num_digit_caps = 10 # 20
+        num_caps_out_channel = 160
+        self.fc = nn.Linear(num_digit_caps * num_caps_out_channel, 256)
         
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -196,8 +199,8 @@ class ResNetTwoStream(nn.Module):
         self.conv1a = nn.Conv2d(in_channels=256, out_channels=256, kernel_size=13, stride=1)
         self.primary_capsules = CapsuleLayer(num_capsules=8, num_route_nodes=-1, in_channels=256, out_channels=32,
                                              kernel_size=9, stride=2)
-        self.digit_capsules = CapsuleLayer(num_capsules=10, num_route_nodes=32 * 6 * 6, in_channels=8,
-                                           out_channels=16)
+        self.digit_capsules = CapsuleLayer(num_capsules=num_digit_caps, num_route_nodes=32 * 6 * 6, in_channels=8,
+                                           out_channels=num_caps_out_channel)
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
@@ -235,12 +238,16 @@ class ResNetTwoStream(nn.Module):
         # x = self.layer3(x)# size /2
 
         x = x.squeeze().transpose(0, 1)
-        classes = (x ** 2).sum(dim=-1) ** 0.5
-        classes = F.softmax(classes, dim=-1)
+        masked = False
+        if masked:
+            classes = (x ** 2).sum(dim=-1) ** 0.5
+            classes = F.softmax(classes, dim=-1)
 
-        _, max_length_indices = classes.max(dim=1)
-        y = Variable(torch.eye(10)).to(device).index_select(dim=0, index=max_length_indices.data)
-        z = x * y[:, :, None]
+            _, max_length_indices = classes.max(dim=1)
+            y = Variable(torch.eye(10)).to(device).index_select(dim=0, index=max_length_indices.data)
+            z = x * y[:, :, None]
+        else:
+            z=x
 
         # regression stream
         # x_r = self.layer4_reg(x)
