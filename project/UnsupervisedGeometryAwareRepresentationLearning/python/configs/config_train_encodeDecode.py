@@ -19,9 +19,9 @@ config_dict = {
 
     # opt parameters    
     'num_training_iterations' : 600000,
-    'save_every' : 100000,
+    'save_every' : 1000, # 100000,
     'learning_rate' : 1e-3,# baseline: 0.001=1e-3
-    'test_every' : 5000,
+    'test_every' : 5000, # 5000,
     'plot_every' : 5000,
     'print_every' : 100,
 

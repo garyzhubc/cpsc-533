@@ -219,6 +219,7 @@ class ResNetTwoStream(nn.Module):
     def forward(self, x_dict):
         x = x_dict[self.input_key]
         device = x.device
+        batchsize, _, _, _, = x.shape
         x = self.conv1(x) # size /2
         x = self.bn1(x)
         x = self.relu(x) 
@@ -248,7 +249,7 @@ class ResNetTwoStream(nn.Module):
         # f_lin = f_r.view(f_r.size(0), -1) # 1D per batch
                
         # p = self.fc(f_lin)
-        p = self.fc(z.reshape(32, -1))
+        p = self.fc(z.reshape(batchsize, -1))
 
         #print('f_lin.size()',f_lin.size())
         return {self.output_keys[0]: p} #{'3D': p, '2d_heat': h}

@@ -68,6 +68,8 @@ class IgniteTrainNVS:
     
         # save path and config files
         save_path = self.get_parameter_description(config_dict)
+        print('save path:', save_path)
+        save_path = self.get_parameter_description(config_dict)
         utils_io.savePythonFile(config_dict_file, save_path)
         utils_io.savePythonFile(__file__, save_path)
         
@@ -110,8 +112,8 @@ class IgniteTrainNVS:
             print("Running evaluation at iteration",iteration)
             evaluator.run(test_loader)
             avg_accuracy = utils_train.save_testing_error(save_path, engine, evaluator, vis, vis_windows)
-    
             # save the best model
+            print("save model state at iteration:",iteration)
             utils_train.save_model_state(save_path, trainer, avg_accuracy, model, optimizer, engine.state)
     
         # print test result
