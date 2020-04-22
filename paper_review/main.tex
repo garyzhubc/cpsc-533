@@ -1,0 +1,31 @@
+\documentclass{article}
+\usepackage[margin=1.2in]{geometry}
+\usepackage{amssymb}
+\author{Peiyuan Zhu}
+\title{PIFu: Pixel-Aligned Implicit Function for High-Resolution Clothed Human Digitization}
+\begin{document}
+	\maketitle
+	\section{Main contribution}
+	\begin{enumerate}
+		\item Proposed an end-to-end deep learning framework for digitizing clothed human with high resolutions
+		\item This framework can be generally applied to inferring both 3-D surface and texture, and can take arbitrary number of perspective images as input
+		\item Achieved state-of-the-art performance on RenderPeople and Buff datasets
+	\end{enumerate}
+	\section{Strength point}
+	\begin{enumerate}
+		\item Compared with voxel representation, using implicit function to represent the surface is much more memory efficient 
+		\item This allows the use of fully-convolutional network that preserves spatial alignment between the image and the output
+	\end{enumerate}
+	\section{Weakness point}
+	\begin{enumerate}
+		\item Need to to exhaustively sample points from the 3-D space and decide whether it is inside or outside the surface mesh
+		\item From the result, it seems that the extrapolation of the clothes on unseen area of the human were flawed with mixing them up with thje human skins and the textures weren't exactly preserved. 
+		\item From the result of the video, the body shape of a human is far from realistic when the body is behind the human.
+	\end{enumerate}
+	\section{Questions}
+	\begin{enumerate}
+		\item Is it possible to perform segmentation first to distinguish human bodies from clothes, then reconstruct them with separate implicit function networks?
+		\item Can we represent the surface as a differential equation and use neural network to learn the differential operator? When the views are limited, extrapolation by differential equation can be a better way.
+		\item For more than three views, should we incorporate some dependencies between views instead of average pooling? This might give better prediction for the unseen area.
+	\end{enumerate}
+\end{document}

@@ -1,0 +1,133 @@
+\documentclass{beamer}
+\usetheme{Madrid}
+
+\title{PIFu: Pixel-Aligned Implicit Function for High-Resolution Clothed Human Digitization}
+\author{by Peiyuan Zhu}
+\centering
+\date{Match 2020}
+\begin{document}
+	\maketitle
+	
+	\begin{frame}{Problem statement}
+		\includegraphics[scale=0.5]{problem}
+	\end{frame}
+	
+	\begin{frame}{Related work}
+		\begin{itemize}
+			\item Other method to solve this problem
+			\begin{itemize}
+				\item Voxel representation: memory requirement scales cubically with precision
+				\item Global representation: cannot capture intricacy of the images
+				\item Other implicit function method: not spatially aligned
+			\end{itemize}
+			\item This paper overcomes these three drawbacks with a simple idea
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}{Idea}
+		Closed surface $\Omega\subset\mathbb{R}^3$ can be represented by implicit function $f(x,y,z)=0$
+		\includegraphics[scale=0.1]{idea}
+	\end{frame}
+
+	\begin{frame}{Overview}
+		\includegraphics[scale=0.5]{overview}
+	\end{frame}
+	
+	\begin{frame}{Single-view reconstruction}
+		\begin{itemize}
+			\item We use single-view reconstruction as an example
+			\item Define
+			\begin{itemize}
+				\item $f_\theta:$ implicit function parameterized by $\theta$. It takes value of
+				\begin{itemize}
+					\item Probability $[0,1]$ of a point is inside the surface 
+					\item RGB color $[1:256]^3$ for texture inference
+				\end{itemize}
+				\item $F_\eta:$ autoencoder parameterized by $\eta$
+				\item $\pi:$ projection of 3D point on 2D image
+				\item $z:$ camera depth of 3-D point
+			\end{itemize}
+			\item Implicit function $$f_\theta\left(F_\eta\circ\pi\left(x\right),z\left(x\right)\right)$$
+			\item Learning $f_\theta,F_\eta$ gives an occupancy/color field
+			\item Occupancy field $\implies$ human geometry by matching cube algorithm
+			\item How to define the optimization procedure?
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}{Single-view reconstruction}
+		\begin{itemize}
+			\item Define distance $$D\left(f_\theta\left(F_\eta\circ\pi\left(x\right),z\left(x\right)\right)||I\{x\text{ is inside the surface mesh}\}\right)$$
+			\item Use $$\text{E}_{p(x)}\left|f_\theta\left(F_\eta\circ\pi\left(x\right),z(x)\right)-I\{x\text{ is inside the surface mesh}\}\right|^2$$
+			\item This can be approximated by
+			\begin{itemize}
+				\item Sample $x_1,\cdots,x_n\sim p(x)$
+				\item Calculate $\frac{1}{n}\sum_{i=1}^n\left|f_\theta\left(F_\eta\circ\pi\left(x_i\right),z\left(x_i\right)\right)-I\{x_i\text{ is inside the surface}\}\right|^2$
+			\end{itemize}
+			\item Use $$p(x)=\frac{15}{16}N\left(\Omega,5\right)+\frac{1}{16}\text{Unif}\left(X\right)$$ where $\Omega$ is the surface mesh
+			\item Can we use the same architecture for texture inference?
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Texture inference}
+		\begin{itemize}
+			\item We can also use this to inference texture
+			\item Simiarly, loss is calculated as
+			$$\frac{1}{n}\sum_{i=1}^n\left|f_\theta\left(F_\eta\left(x_i\right),z(x_i)\right)-\text{ColorOf}\left(x_i\right)\right|$$
+			\item To reduce overfitting, add noise to $x_1,\cdots,x_i$
+			\item How about multiple views?
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Multi-view reconstruction}
+		\begin{itemize}
+			\item Suppose there are $m$ views
+			\item First, learn individual latent representations $$\Phi_i=\tilde{f}_{\theta_i}\left(F_{\eta_i}\circ\pi(x_i),z(x_i)\right)$$
+			\item Second, pool latent features from different views $$\bar{\Phi}=\text{mean}\left(\{\Phi_i\}\right)$$
+			\item Feed this pooled feature to a global implicit function $$f_\lambda\left(\bar{\Phi}\right)=\text{inside/outside, RGB color, etc.}$$
+			\item How does this architecture work on real datasets?
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}{Single-view evaluation}
+		\includegraphics[scale=0.3]{singleview_pic}
+		\includegraphics[scale=0.8]{singleview_quant}
+	\end{frame}
+
+	\begin{frame}{Multie-view evaluation}
+		\includegraphics[scale=0.3]{multiview_pic}
+		\includegraphics[scale=0.9]{multiview_quant}
+	\end{frame}
+
+	\begin{frame}{Consistency}
+		\includegraphics[scale=0.7]{consistency}
+	\end{frame}
+
+	\begin{frame}{Summary}
+		\begin{itemize}
+			\item Proposed a deep learning framework for human digitization
+			\item Can be generally applied to surface, texture, and multi-view
+			\item Achieved state-of-the-art performance on two benchmark datasets
+			\item Closer to the ground-truth when increase the number of views
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}{Discussion}
+		\begin{itemize}
+			\item From the result, it seems that the extrapolation of the clothes on unseen area of the human were flawed with mixing them up with the human skins and the textures weren't exactly preserved. 
+			\includegraphics[scale=0.2]{back}
+			\item Is it better to perform segmentation first to distinguish human bodies from clothes, then reconstruct them with separate implicit function networks?
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}{Discussion}
+		\begin{itemize}
+			\item From the result of the video, the body shape of a human is far from realistic when the body is behind the human. \url{https://www.youtube.com/watch?v=S1FpjwKqtPs}
+			\item Can we represent the surface as a differential equation and use neural network to learn the differential operator? When the views are limited, extrapolation by differential equation can be a better way.
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}
+		\huge{\centerline{The End}}
+	\end{frame}
+	
+\end{document}
