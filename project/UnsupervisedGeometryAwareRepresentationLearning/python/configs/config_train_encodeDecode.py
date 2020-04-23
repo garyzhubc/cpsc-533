@@ -6,7 +6,7 @@ inputDimension = 128
 
 config_dict = {
     # general params
-    'dpi': 190,
+    'dpi': 1000,
     'config_class_file': 'dict_configs/config_class_encodeDecode.py',
 
     'input_types'       : ['img_crop','extrinsic_rot','extrinsic_rot_inv','bg_crop'],

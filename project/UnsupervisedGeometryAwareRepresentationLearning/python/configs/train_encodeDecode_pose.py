@@ -47,6 +47,9 @@ class IgniteTrainPose(train_encodeDecode.IgniteTrainNVS):
         print("MPJPE test weight = {}, to normalize different number of joints".format(weight))
     
         pose_key = '3D'
+        # import pdb
+        # pdb.set_trace()
+        
         loss_train = losses_generic.LossLabelMeanStdNormalized(pose_key, torch.nn.MSELoss())
         loss_test = losses_generic.LossLabelMeanStdUnNormalized(pose_key, losses_poses.Criterion3DPose_leastQuaresScaled(losses_poses.MPJPECriterion(weight)), scale_normalized=False)
 
@@ -61,5 +64,6 @@ class IgniteTrainPose(train_encodeDecode.IgniteTrainNVS):
 if __name__ == "__main__":
     config_dict_module = utils_io.loadModule("configs/config_train_encodeDecode_pose.py")
     config_dict = config_dict_module.config_dict
+    # print(config_dict)
     ignite = IgniteTrainPose()
     ignite.run(config_dict_module.__file__, config_dict)

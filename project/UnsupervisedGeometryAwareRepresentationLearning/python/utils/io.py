@@ -5,9 +5,9 @@ def savePythonFile(config_orig_path, directory_path):
     if not os.path.exists(directory_path):
         os.makedirs(directory_path)
     config_save_path = '{}/{}'.format(directory_path, os.path.basename(config_orig_path))
-    if not os.path.exists(config_save_path):
-        shutil.copy(config_orig_path, config_save_path)
-        print('copying {} to {}'.format(config_orig_path, config_save_path))
+    # if not os.path.exists(config_save_path):
+    shutil.copy(config_orig_path, config_save_path)
+    print('copying {} to {}'.format(config_orig_path, config_save_path))
 
 def loadModule(module_path_and_name):
     # if contained in module it would be a oneliner: 

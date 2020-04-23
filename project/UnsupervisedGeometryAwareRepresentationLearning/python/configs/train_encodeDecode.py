@@ -170,6 +170,9 @@ class IgniteTrainNVS:
                                             caps_masked=config_dict['caps_masked'],
                                             )
 
+        # import pdb
+        # pdb.set_trace()
+        
         if 'pretrained_network_path' in config_dict.keys(): # automatic
             if config_dict['pretrained_network_path'] == 'MPII2Dpose':
                 pretrained_network_path = '/cvlabdata1/home/rhodin/code/humanposeannotation/output_save/CVPR18_H36M/TransferLearning2DNetwork/h36m_23d_crop_relative_s1_s5_aug_from2D_2017-08-22_15-52_3d_resnet/models/network_000000.pth'
@@ -288,7 +291,7 @@ class IgniteTrainNVS:
         
     
 if __name__ == "__main__":
-    config_dict_module = utils_io.loadModule("config_train_encodeDecode.py")
+    config_dict_module = utils_io.loadModule("configs/config_train_encodeDecode.py")
     config_dict = config_dict_module.config_dict
     ignite = IgniteTrainNVS()
     ignite.run(config_dict_module.__file__, config_dict)
