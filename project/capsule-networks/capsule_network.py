@@ -64,7 +64,11 @@ class CapsuleLayer(nn.Module):
         if self.num_route_nodes != -1:
             priors = x[None, :, :, None, :] @ self.route_weights[:, None, :, :, :]
 
+<<<<<<< HEAD
+            logits = Variable(torch.zeros(*priors.size()))
+=======
             logits = Variable(torch.zeros(*priors.size())).cuda()
+>>>>>>> 3da462b9351869b0342b95d99fef37ab3e45a309
             for i in range(self.num_iterations):
                 probs = softmax(logits, dim=2)
                 outputs = self.squash((probs * priors).sum(dim=2, keepdim=True))
@@ -100,10 +104,21 @@ class CapsuleNet(nn.Module):
         )
 
     def forward(self, x, y=None):
+<<<<<<< HEAD
+        print(x.shape)
 
+        x = F.relu(self.conv1(x), inplace=True)
+        print(x.shape)
+
+        x = self.primary_capsules(x)
+        print(x.shape)
+        x = self.digit_capsules(x).squeeze().transpose(0, 1)
+        print(x.shape)
+=======
         x = F.relu(self.conv1(x), inplace=True)
         x = self.primary_capsules(x)
         x = self.digit_capsules(x).squeeze().transpose(0, 1)
+>>>>>>> 3da462b9351869b0342b95d99fef37ab3e45a309
 
         classes = (x ** 2).sum(dim=-1) ** 0.5
         classes = F.softmax(classes, dim=-1)
@@ -111,8 +126,11 @@ class CapsuleNet(nn.Module):
         if y is None:
             # In all batches, get the most active capsule.
             _, max_length_indices = classes.max(dim=1)
-
+<<<<<<< HEAD
+            y = Variable(torch.eye(NUM_CLASSES)).index_select(dim=0, index=max_length_indices.data)
+=======
             y = Variable(torch.eye(NUM_CLASSES)).cuda().index_select(dim=0, index=max_length_indices.data)
+>>>>>>> 3da462b9351869b0342b95d99fef37ab3e45a309
 
         # reconstructions = self.decoder((x * y[:, :, None]).view(x.size(0), -1))
         reconstructions = self.decoder((x * y[:, :, None]).reshape(x.size(0), -1))
@@ -151,7 +169,10 @@ if __name__ == "__main__":
 
     model = CapsuleNet()
     # model.load_state_dict(torch.load('epochs/epoch_327.pt'))
+<<<<<<< HEAD
+=======
     model.cuda()
+>>>>>>> 3da462b9351869b0342b95d99fef37ab3e45a309
 
     print("# parameters:", sum(param.numel() for param in model.parameters()))
 
@@ -192,8 +213,13 @@ if __name__ == "__main__":
 
         labels = torch.eye(NUM_CLASSES).index_select(dim=0, index=labels)
 
+<<<<<<< HEAD
+        data = Variable(data)
+        labels = Variable(labels)
+=======
         data = Variable(data).cuda()
         labels = Variable(labels).cuda()
+>>>>>>> 3da462b9351869b0342b95d99fef37ab3e45a309
 
         if training:
             classes, reconstructions = model(data, labels)
@@ -250,8 +276,11 @@ if __name__ == "__main__":
         test_sample = next(iter(get_iterator(False)))
 
         ground_truth = (test_sample[0].unsqueeze(1).float() / 255.0)
-
+<<<<<<< HEAD
+        _, reconstructions = model(Variable(ground_truth))
+=======
         _, reconstructions = model(Variable(ground_truth).cuda())
+>>>>>>> 3da462b9351869b0342b95d99fef37ab3e45a309
         reconstruction = reconstructions.cpu().view_as(ground_truth).data
 
         ground_truth_logger.log(
