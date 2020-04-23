@@ -1,4 +1,5 @@
 from utils import skeleton
+import os
 
 # problem class parameters
 numJoints = 17
@@ -83,10 +84,23 @@ config_dict = {
     'predict_rotation': False,
     'skip_background': True,
 
-    'num_digit_caps':10,
+    'num_digit_caps': 10,
     'num_caps_out_channel':160,
     'caps_masked':False
 }
+
+if os.getenv('NUM_CAPS') is not None:
+    config_dict['num_digit_caps'] = int(os.getenv('NUM_CAPS'))
+if os.getenv('CAPS_CH') is not None:
+    config_dict['num_caps_out_channel'] = int(os.getenv('CAPS_CH'))
+if os.getenv('MASK') is not None:
+    if os.getenv('MASK') == 'True':
+        config_dict['caps_masked'] = True
+    elif os.getenv('MASK') == 'False':
+        config_dict['caps_masked'] = False
+    else:
+        print('Invalid mask string. Only True and False are allowed')
+        assert(False)
 
 # learning rate influence
 config_dict['learning_rate'] = 1e-3
