@@ -1,12 +1,15 @@
 from utils import skeleton
 
+import os
+
 # problem class parameters
 numJoints = 17
 inputDimension = 128
 
 config_dict = {
     # general params
-    'dpi': 190,
+
+    'dpi': 1000,
     'config_class_file': 'dict_configs/config_class_encodeDecode.py',
 
     'input_types'       : ['img_crop','extrinsic_rot','extrinsic_rot_inv','bg_crop'],
@@ -43,6 +46,7 @@ config_dict = {
     
     'dataset_folder_train' :'../../../../data.nosync/H36M-MultiView-train',
     'dataset_folder_test': '../../../../data.nosync/H36M-MultiView-test',
+
     # 'dataset_folder' :'/Users/rhodin/H36M-MultiView-test',
     'training_set': 'h36m',
     'img_mean': (0.485, 0.456, 0.406),
@@ -87,6 +91,20 @@ config_dict = {
     'num_caps_out_channel':160,
     'caps_masked':False
 }
+
+
+if os.getenv('NUM_CAPS') is not None:
+    config_dict['num_digit_caps'] = int(os.getenv('NUM_CAPS'))
+if os.getenv('CAPS_CH') is not None:
+    config_dict['num_caps_out_channel'] = int(os.getenv('CAPS_CH'))
+if os.getenv('MASK') is not None:
+    if os.getenv('MASK') == 'True':
+        config_dict['caps_masked'] = True
+    elif os.getenv('MASK') == 'False':
+        config_dict['caps_masked'] = False
+    else:
+        print('Invalid mask string. Only True and False are allowed')
+        assert(False)
 
 # learning rate influence
 config_dict['learning_rate'] = 1e-3

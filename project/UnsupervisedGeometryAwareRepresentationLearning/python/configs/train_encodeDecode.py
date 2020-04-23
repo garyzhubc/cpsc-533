@@ -288,7 +288,7 @@ class IgniteTrainNVS:
         
     
 if __name__ == "__main__":
-    config_dict_module = utils_io.loadModule("config_train_encodeDecode.py")
+    config_dict_module = utils_io.loadModule("configs/config_train_encodeDecode.py")
     config_dict = config_dict_module.config_dict
     ignite = IgniteTrainNVS()
     ignite.run(config_dict_module.__file__, config_dict)

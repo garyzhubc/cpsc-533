@@ -250,7 +250,7 @@ class ResNetTwoStream(nn.Module):
             classes = F.softmax(classes, dim=-1)
 
             _, max_length_indices = classes.max(dim=1)
-            y = Variable(torch.eye(10)).to(device).index_select(dim=0, index=max_length_indices.data)
+            y = Variable(torch.eye(self.num_digit_caps)).to(device).index_select(dim=0, index=max_length_indices.data)
             z = x * y[:, :, None]
         else:
             z = x
