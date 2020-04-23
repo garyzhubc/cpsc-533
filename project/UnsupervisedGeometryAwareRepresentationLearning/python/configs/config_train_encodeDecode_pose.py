@@ -1,7 +1,8 @@
 from utils import io as utils_io
 import os
 
-network_path ='/bigdata/dingding/cpsc-533/project/UnsupervisedGeometryAwareRepresentationLearning/output/trainNVS_resL3_ResNet_layers4_implRFalse_w3Dp0_w3D0_wRGB1_wGrad0_wImgNet2_skipBG0_fg128_3dTrue_lh3Dp2_ldrop0o3_billinupper_fscale2_shuffleFGTrue_shuffle3dTrue_h36m_nth100_cFalse_sub[1]_bs2_lr0o001_'
+# FIXME: get this from the config
+network_path='/bigdata/dingding/cpsc-533/project/UnsupervisedGeometryAwareRepresentationLearning/output/trainNVS_resL3_ResNet_layers4_implRFalse_w3Dp0_w3D0_wRGB1_wGrad0_wImgNet2_skipBG0_fg128_3dTrue_lh3Dp2_ldrop0o3_billinupper_fscale2_shuffleFGTrue_shuffle3dTrue_h36m_nth100_cFalse_sub[1]_bs2_lr0o001_digitCaps10_caps_channel160_capMaskFalse'
 
 config_dict = utils_io.loadModule(os.path.join(network_path,"config_train_encodeDecode.py")).config_dict
 config_dict['pretrained_network_path'] = os.path.join(network_path,'models/network_last_val.pth')

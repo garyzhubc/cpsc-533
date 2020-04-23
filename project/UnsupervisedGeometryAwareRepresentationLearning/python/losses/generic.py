@@ -50,6 +50,7 @@ class LossLabelMeanStdNormalized(torch.nn.Module):
         self.weight=weight
 
     def forward(self, preds, labels):
+        print(preds.keys())
         pred_pose = preds[self.key]
         label_pose = labels[self.key]
         label_mean = labels['pose_mean']

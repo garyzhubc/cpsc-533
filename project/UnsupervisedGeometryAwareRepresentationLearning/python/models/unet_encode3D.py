@@ -88,7 +88,7 @@ class unet(nn.Module):
                  num_cameras=4,
                  num_digit_caps=10,
                  num_caps_out_channel=160,
-                 masked=False):
+                 caps_masked=False):
         super(unet, self).__init__()
         self.in_resolution = in_resolution
         self.is_deconv = is_deconv
@@ -123,17 +123,17 @@ class unet(nn.Module):
 
         ####################################
         ############ encoder ###############
-        self.num_digit_caps = num_digit_caps  # 20
-        self.num_caps_out_channel = num_caps_out_channel
-        self.masked = masked
+        # self.num_digit_caps = num_digit_caps  # 20
+        # self.num_caps_out_channel = num_caps_out_channel
+        # self.masked = masked
         if self.encoderType == "ResNet":
             self.encoder = resnet_VNECT_3Donly.resnet50(pretrained=True, input_key='img_crop',
                                                         output_keys=['latent_3d', '2D_heat'],
                                                         input_width=in_resolution,
                                                         num_classes=self.dimension_fg + self.dimension_3d,
-                                                        num_digit_caps=self.num_digit_caps,
-                                                        num_caps_out_channel=self.num_caps_out_channel,
-                                                        masked=self.masked)
+                                                        num_digit_caps=num_digit_caps,
+                                                        num_caps_out_channel=num_caps_out_channel,
+                                                        caps_masked=caps_masked)
 
         ns = 0
         setattr(self, 'conv_1_stage' + str(ns),

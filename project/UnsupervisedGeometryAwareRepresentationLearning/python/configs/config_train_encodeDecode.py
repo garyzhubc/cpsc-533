@@ -10,7 +10,7 @@ config_dict = {
     'config_class_file': 'dict_configs/config_class_encodeDecode.py',
 
     'input_types'       : ['img_crop','extrinsic_rot','extrinsic_rot_inv','bg_crop'],
-    'output_types'      : ['img_crop'], # ['3D','img_crop'],
+    'output_types'      : ['3D','img_crop'],
     'label_types_train' : ['img_crop','3D','bounding_box_cam','intrinsic_crop','extrinsic_rot','extrinsic_rot_inv'],
     'label_types_test'  : ['img_crop','3D','bounding_box_cam','intrinsic_crop','extrinsic_rot','extrinsic_rot_inv'],
     'num_workers'       : 8,
@@ -23,8 +23,8 @@ config_dict = {
     'num_training_iterations' : 600000,
     'save_every' : 1000, # 100000,
     'learning_rate' : 1e-3,# baseline: 0.001=1e-3
-    'test_every' : 5000, # 5000,
-    'plot_every' : 5000,
+    'test_every' : 500, # 5000,
+    'plot_every' : 500,
     'print_every' : 100,
 
     # network parameters
@@ -38,11 +38,11 @@ config_dict = {
     'train_crop_relative': False,
 
     # dataset
-    # /bigdata/dingding/cpsc-533/project/UnsupervisedGeometryAwareRepresentationLearning/data/H36M-MultiView-train/
-    'dataset_folder_train' :'../../../../data.nosync/H36M-MultiView-train',
-    'dataset_folder_test': '../../../../data.nosync/H36M-MultiView-test',
-    # 'dataset_folder_train' : '/cvlabdata1/home/rhodin/code/humanposeannotation/python/pytorch_human_reconstruction/TMP/H36M-MultiView-train',
-    # 'dataset_folder_test' : '/cvlabdata1/home/rhodin/code/humanposeannotation/python/pytorch_human_reconstruction/TMP/H36M-MultiView-test',
+    'dataset_folder_train':'/bigdata/dingding/cpsc-533/project/UnsupervisedGeometryAwareRepresentationLearning/data/H36M-MultiView-train',
+    'dataset_folder_test':'/bigdata/dingding/cpsc-533/project/UnsupervisedGeometryAwareRepresentationLearning/data/H36M-MultiView-test',
+    
+    # 'dataset_folder_train' :'../../../../data.nosync/H36M-MultiView-train',
+    # 'dataset_folder_test': '../../../../data.nosync/H36M-MultiView-test',
     # 'dataset_folder' :'/Users/rhodin/H36M-MultiView-test',
     'training_set': 'h36m',
     'img_mean': (0.485, 0.456, 0.406),
@@ -85,7 +85,7 @@ config_dict = {
 
     'num_digit_caps':10,
     'num_caps_out_channel':160,
-    'masked':False
+    'caps_masked':False
 }
 
 # learning rate influence
