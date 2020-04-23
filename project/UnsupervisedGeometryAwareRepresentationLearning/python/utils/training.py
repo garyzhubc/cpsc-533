@@ -19,13 +19,6 @@ def create_supervised_trainer(model, optimizer, loss_fn, device=None):
         optimizer.zero_grad()
         x, y = utils_data.nestedDictToDevice(batch, device=device) # make it work for dict input too
         y_pred = model(x)
-<<<<<<< HEAD
-=======
-        
-        # import pdb 
-        # pdb.set_trace()
-        # print("output class: ",type(y_pred))
->>>>>>> 3da462b9351869b0342b95d99fef37ab3e45a309
         loss = loss_fn(y_pred, y)
         loss.backward()
         optimizer.step()
