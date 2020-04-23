@@ -153,7 +153,7 @@ class ResNetTwoStream(nn.Module):
     def __init__(self, block, layers, input_key='img_crop', output_keys=['3D'],
                  num_scalars=1000, input_width=256, num_classes=17 * 3, num_digit_caps=10,
                                                         num_caps_out_channel=160,
-                                                        masked=False):
+                                                        caps_masked=False):
         self.output_keys = output_keys
         self.input_key = input_key
 
@@ -189,7 +189,10 @@ class ResNetTwoStream(nn.Module):
 
         self.num_digit_caps = num_digit_caps  # 20
         self.num_caps_out_channel = num_caps_out_channel
-        self.masked = masked
+        self.caps_masked = caps_masked
+        print('num_digit_caps:', self.num_digit_caps)
+        print('num_caps_out_channel:', self.num_caps_out_channel)
+        print('caps_masked:', self.caps_masked)
         self.fc = nn.Linear(self.num_digit_caps * self.num_caps_out_channel, 256)
 
         for m in self.modules():
@@ -242,7 +245,7 @@ class ResNetTwoStream(nn.Module):
         # x = self.layer3(x)# size /2
 
         x = x.squeeze().transpose(0, 1)
-        if self.masked:
+        if self.caps_masked:
             classes = (x ** 2).sum(dim=-1) ** 0.5
             classes = F.softmax(classes, dim=-1)
 
